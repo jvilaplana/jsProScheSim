@@ -18,6 +18,7 @@ var result = sim.nextStep();
 
 
 Process status {
+-1 - Not arrived yet
 0 - Prepared
 1 - Executing
 2 - I/O
@@ -38,7 +39,7 @@ var Process = function(name, queue, arrivalTime, priority, execs) {
   this.arrivalTime = arrivalTime;
   this.priority = priority;
   this.execs = execs;
-  this.status = 0;
+  this.status = -1;
 };
 
 var Policy = function(name, algorithm) {
@@ -51,6 +52,7 @@ var Queue = function(name, priority, policy) {
   this.priority = priority;
   this.policy = policy;
   this.finished = false;
+  this.quantum = 0;
 };
 
 var fcfs_algorithm = function(processes) {
@@ -246,9 +248,19 @@ var Simulation = function() {
     var isSimFinished = true;
     for(var i in this.queues) {
       var queue = this.queues[i];
+      var isQueueFinished = true;
       console.log("Checking queue " + queue.name);
       if(queue.finished) continue;
-      isSimFinished = false;
+
+      var allProcessesInQueue = this.processes.filter(function(p) {
+        return p.queue.name == queue.name && p.status != 4;
+      });
+      if(allProcessesInQueue.length > 0) {
+        isQueueFinished = false;
+        isSimFinished = false;
+        isAllFinished = false;
+      }
+
       var processesInQueue = this.processes.filter(function(p) {
         return p.queue.name == queue.name && p.arrivalTime <= currentTime && p.status != 4;
       });
@@ -258,14 +270,20 @@ var Simulation = function() {
       if(processesInQueue.length == 0) continue;
 
       var isCpuUsed = false;
-      var isQueueFinished = true;
+
       for(p in processesInQueue) {
         console.log("\tChecking process " + processesInQueue[p].name);
-        isAllFinished = false;
         if(processesInQueue[p].execs.length == 0) {
           processesInQueue[p].status = 4;
           continue;
         }
+
+        if(processesInQueue[p].status != 4) {
+          isQueueFinished = false;
+          isSimFinished = false;
+          isAllFinished = false;
+        }
+
         if(processesInQueue[p].execs[0] == 1) {
           processesInQueue[p].execs.shift();
           processesInQueue[p].status = 2;

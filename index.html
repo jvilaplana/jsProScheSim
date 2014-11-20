@@ -85,7 +85,8 @@
             </div>
             <div class="form-group">
               <label for="process_exec">Execution bursts</label>
-              <input type="number" class="form-control" id="process_exec" placeholder="Execution bursts">
+              <input type="text" class="form-control" id="process_exec" placeholder="Execution bursts">
+              <span class="help-block">Type 0 for a CPU burst and 1 for an I/O burst. Example: 01001110 means 1CPU, 1I/O, 2CPU, 3I/O, 1CPU</span>
             </div>
             <a id="addProcessButton" href="javascript:void(0)" class="btn btn-success"><i class="mdi-action-done"></i> Add process</a>
           </div>
@@ -94,20 +95,44 @@
       <div role="tabpanel" class="tab-pane fade" id="summaryPanel">
         <div class="panel panel-default">
           <div class="panel-body">
-
+            <div class="panel panel-primary">
+              <div class="panel-body">
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <samp>Processors: <span id="summary_processors" class="badge">0</span></samp>
+                  </li>
+                  <li class="list-group-item">
+                    <samp>Queues: <span id="summary_queues_number" class="badge">0</span></samp>
+                    <ul class="list-group" id="summary_queues">
+                    </ul>
+                  </li>
+                  <li class="list-group-item">
+                    <samp>Processes: <span id="summary_process_number" class="badge">0</span></samp>
+                    <ul class="list-group" id="summary_processes">
+                    </ul>
+                  </li>
+                </ul>
+                <a id="readySimButton" href="javascript:void(0)" class="btn btn-primary disabled"><i class="mdi-action-input"></i> Ready</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <div class="bs-component">
+    <div class="progress progress-striped active">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+  </div>
   <p>When the configuration is done, click on the 'Next step' button in order to start the simulation.</p>
-  <a id="planButton" href="javascript:void(0)" class="btn btn-primary disabled"><i class="mdi-av-skip-next"></i> Next step</a>
-  <div class="panel panel-success">
+  <a id="nextStepButton" href="javascript:void(0)" class="btn btn-primary disabled"><i class="mdi-av-skip-next"></i> Next step</a>
+  <div class="panel panel-success" style="overflow: auto;">
     <div class="panel-heading">
       <h3 class="panel-title">Simulation result</h3>
     </div>
     <div class="panel-body">
-      <div id="result">
+      <div class="bs-component" id="result">
         No results yet.
       </div>
     </div>
@@ -117,7 +142,7 @@
 <!-- Modal alerts -->
 <div class="modal fade" id="modalAlert" tabindex="-1" role="dialog" aria-labelledby="modalAlertLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div id="modalAlertContent" class="modal-content alert">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
         <h4 class="modal-title" id="modalAlertLabel"></h4>
