@@ -97,6 +97,8 @@ var System = function(processors, processes, queues) {
   this.processors = processors;
   this.processes = processes;
   this.queues = queues;
+  /** Tasks can be interrupted before finishing all CPU cicles */
+  this.isPreemptive = true;
 
   this.currentTime = 1;
 
@@ -240,15 +242,17 @@ var Simulation = function() {
 
   this.nextStep = function() {
     this.currentTime += 1;
+    var currentTime = this.currentTime;
     var isSimFinished = true;
     for(var i in this.queues) {
       var queue = this.queues[i];
+      console.log("Checking queue " + queue.name);
       if(queue.finished) continue;
       isSimFinished = false;
       var processesInQueue = this.processes.filter(function(p) {
-        return p.queue.name == queue.name && p.arrivalTime <= this.currentTime && p.status != 4;
+        return p.queue.name == queue.name && p.arrivalTime <= currentTime && p.status != 4;
       });
-
+      console.log("\tThere are " + processesInQueue.length + " processes in queue");
       queue.policy(processesInQueue);
 
       if(processesInQueue.length == 0) continue;
@@ -256,6 +260,7 @@ var Simulation = function() {
       var isCpuUsed = false;
       var isQueueFinished = true;
       for(p in processesInQueue) {
+        console.log("\tChecking process " + processesInQueue[p].name);
         isAllFinished = false;
         if(processesInQueue[p].execs.length == 0) {
           processesInQueue[p].status = 4;

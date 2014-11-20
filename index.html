@@ -1,18 +1,141 @@
 <html>
 <head>
   <title>Javascript (Simple) Process Scheduling Simulator</title>
+
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/ripples.min.css" rel="stylesheet">
+  <link href="css/material-wfont.min.css" rel="stylesheet">
+
   <script type="text/javascript" src="js/lib/jquery-2.1.1.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/ripples.min.js"></script>
+  <script src="js/material.min.js"></script>
   <script type="text/javascript" src="src/jsProScheSim.js"></script>
   <script type="text/javascript" src="js/sample.js"></script>
 </head>
 <body>
+<div class="container">
   <h1>Javascript (Simple) Process Scheduling Simulator</h1>
-  <p>Number of CPUs:</p>
-  <input type="number" id="processors" value="1" />
+  <h3 class="text-muted">This is a sample webpage using the jsProScheSim simulator</h3>
+  <p>First configure the system with the desired parameters.</p>
+  <div role="tabpanel">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#systemPanel" aria-controls="systemPanel" role="tab" data-toggle="tab">System</a></li>
+      <li role="presentation"><a href="#queuesPanel" aria-controls="queuesPanel" role="tab" data-toggle="tab">Queues</a></li>
+      <li role="presentation"><a href="#processesPanel" aria-controls="processesPanel" role="tab" data-toggle="tab">Processes</a></li>
+      <li role="presentation"><a href="#summaryPanel" aria-controls="summaryPanel" role="tab" data-toggle="tab">Summary</a></li>
+    </ul>
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <div role="tabpanel" class="tab-pane fade in active" id="systemPanel">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="processors">Number of CPUs</label>
+              <input type="number" class="form-control" id="processors" placeholder="Enter # processors">
+            </div>
+            <a id="setProcessorsButton" href="javascript:void(0)" class="btn btn-warning"><i class="mdi-action-done"></i> Set processors</a>
+          </div>
+        </div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="queuesPanel">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="queue_name">Name</label>
+              <input type="text" class="form-control" id="queue_name" placeholder="Name">
+            </div>
+            <div class="form-group">
+              <label for="queue_priority">Priority</label>
+              <input type="text" class="form-control" id="queue_priority" placeholder="Priority">
+            </div>
+            <div class="form-group">
+              <label for="queue_policy">Policy</label>
+              <select id="queue_policy" class="form-control">
+                <option value="FCFS">FCFS</option>
+                <option value="RoundRobin">RoundRobin</option>
+                <option value="SRT">SRT</option>
+              </select>
+            </div>
+            <a id="addQueueButton" href="javascript:void(0)" class="btn btn-warning"><i class="mdi-action-done"></i> Add queue</a>
+          </div>
+        </div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="processesPanel">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="process_name">Name</label>
+              <input type="text" class="form-control" id="process_name" placeholder="Name">
+            </div>
+            <div class="form-group">
+              <label for="process_queue">Queue</label>
+              <select id="process_queue" class="form-control">
 
-  <input type="button" value="Plan" id="planButton" />
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="process_arrivalTime">Arrival time</label>
+              <input type="number" class="form-control" id="process_arrivalTime" placeholder="Arrival time">
+            </div>
+            <div class="form-group">
+              <label for="process_priority">Priority</label>
+              <input type="number" class="form-control" id="process_priority" placeholder="Priority">
+            </div>
+            <div class="form-group">
+              <label for="process_exec">Execution bursts</label>
+              <input type="number" class="form-control" id="process_exec" placeholder="Execution bursts">
+            </div>
+            <a id="addProcessButton" href="javascript:void(0)" class="btn btn-success"><i class="mdi-action-done"></i> Add process</a>
+          </div>
+        </div>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="summaryPanel">
+        <div class="panel panel-default">
+          <div class="panel-body">
 
-  <div id="result">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+  <p>When the configuration is done, click on the 'Next step' button in order to start the simulation.</p>
+  <a id="planButton" href="javascript:void(0)" class="btn btn-primary disabled"><i class="mdi-av-skip-next"></i> Next step</a>
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <h3 class="panel-title">Simulation result</h3>
+    </div>
+    <div class="panel-body">
+      <div id="result">
+        No results yet.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal alerts -->
+<div class="modal fade" id="modalAlert" tabindex="-1" role="dialog" aria-labelledby="modalAlertLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="modalAlertLabel"></h4>
+      </div>
+      <div class="modal-body" id="modalAlertBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function() {
+        $.material.init();
+    });
+</script>
 </body>
 </html>
