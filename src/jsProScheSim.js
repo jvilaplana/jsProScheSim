@@ -47,12 +47,12 @@ var Policy = function(name, algorithm) {
   this.algorithm = algorithm;
 };
 
-var Queue = function(name, priority, policy) {
+var Queue = function(name, priority, policy, quantum) {
   this.name = name;
   this.priority = priority;
   this.policy = policy;
   this.finished = false;
-  this.quantum = 0;
+  this.quantum = typeof quantum !== 'undefined' ? quantum : 1;
 };
 
 var fcfs_algorithm = function(processes) {
@@ -75,6 +75,13 @@ var fcfs_algorithm = function(processes) {
   });
 };
 
+var roundRobin_algorithm = function(processes) {
+  if(processes.length > 0) {
+    processes.push(processes[0]);
+    processes.shift();
+  }
+};
+
 var srt_algorithm = function(processes) {
   processes.sort(function(a, b) {
     if(a.execs.length < b.execs.length) {
@@ -95,128 +102,17 @@ var srt_algorithm = function(processes) {
   });
 };
 
-var System = function(processors, processes, queues) {
-  this.processors = processors;
-  this.processes = processes;
-  this.queues = queues;
-  /** Tasks can be interrupted before finishing all CPU cicles */
-  this.isPreemptive = true;
-
-  this.currentTime = 1;
-
-  this.nextTime = function() {
-    this.currentTime++;
-  }
-
-  this.plan = function() {
-    var inputProcesses = this.processes.slice(0);
-    var currentProcesses = [];
-    var currentTime = this.currentTime;
-    var queues = this.queues;
-    var isCpuUsed = false;
-    var finishedProcesses = 0;
-    var result = new Array();
-
-    currentProcesses = this.processes.filter(function(p) {
-      return p.arrivalTime <= currentTime;
-    });
-
-    while(this.processes.length > 0) {
-      console.log("CYCLE " + currentTime);
-      var resultRound = new Array();
-      for(p in this.processes) {
-        if(currentTime > 1) {
-          //console.log(result[currentTime-2]["F"]);
-        }
-        if(currentTime > 1 && (result[currentTime-2][this.processes[p].name] == "E" || result[currentTime-2][this.processes[p].name] == "B")) {
-          resultRound[this.processes[p].name] = "B";
-        }
-        else resultRound[this.processes[p].name] = "";
-      }
-
-      currentProcesses = this.processes.filter(function(p) {
-        return p.arrivalTime <= currentTime;
-      });
-
-      for(q in this.queues) {
-        var processesInQueue = currentProcesses.filter(function(p) {
-          return p.queue.name == queues[q].name;
-        });
-
-        this.queues[q].policy.algorithm(processesInQueue);
-
-        if(processesInQueue.length == 0) continue;
-
-        var finished_p = [];
-        for(p in processesInQueue) {
-          if(processesInQueue[p].execs[0] == 1) {
-            processesInQueue[p].execs.shift();
-            console.log("Process " + processesInQueue[p].name + " goes I/O");
-            resultRound[processesInQueue[p].name] = "W";
-            if(processesInQueue[p].execs.length == 0) {
-              console.log("Process " + processesInQueue[p].name + " is over");
-              //this.processes.splice(this.processes.indexOf(processesInQueue[p]), 1);
-              //processesInQueue.splice(p, 1);
-              finished_p.push(processesInQueue[p]);
-              finishedProcesses++;
-            }
-            continue;
-          }
-          if(!isCpuUsed) {
-            console.log("Process " + processesInQueue[p].name + " goes CPU");
-            resultRound[processesInQueue[p].name] = "E";
-            processesInQueue[p].execs.shift();
-            if(processesInQueue[p].execs.length == 0) {
-              console.log("Process " + processesInQueue[p].name + " is over");
-              //this.processes.splice(this.processes.indexOf(processesInQueue[p]), 1);
-              //processesInQueue.splice(p, 1);
-              finished_p.push(processesInQueue[p]);
-              finishedProcesses++;
-            }
-            isCpuUsed = true;
-          }
-        }
-        for(f in finished_p) {
-          this.processes.splice(this.processes.indexOf(finished_p[f]), 1);
-        }
-
-
-      }
-      currentTime++;
-      result.push(resultRound);
-      isCpuUsed = false;
-    }
-    console.log(result);
-    var resultDiv = $('#result');
-    resultDiv.append('<table id="resultTable"><thead><tr id="resultTableHead"></tr></thead><tbody id="resultTableBody"></tbody></table>');
-
-    $('#resultTableHead').append('<th></th>');
-    for(var i = 0; i < result.length; i++) {
-      $('#resultTableHead').append('<th>' + i + '</th>');
-    }
-
-    for(p in inputProcesses) {
-      var html = '';
-      html += '<tr><td>' + inputProcesses[p].name + '</td>';
-      for(r in result) {
-        html += '<td>' + (result[r][inputProcesses[p].name] || '') + '</td>'
-      }
-      html += '</tr>';
-      $('#resultTableBody').append(html);
-    }
-  };
-};
-
 var Simulation = function() {
   this.processors = 1;
   this.processes = [];
+  this.isPreemptive = true;
   this.queues = [];
   this.policies = {};
   this.currentTime = 0;
   this.finished = false;
 
   this.policies['FCFS'] = fcfs_algorithm;
-  this.policies['RoundRobin'] = fcfs_algorithm;
+  this.policies['RoundRobin'] = roundRobin_algorithm;
   this.policies['SRT'] = srt_algorithm;
 
   this.setProcessors = function(n) {
@@ -225,6 +121,11 @@ var Simulation = function() {
 
   this.addQueue = function(name, priority, policy) {
     var q = new Queue(name, priority, this.getPolicy(policy));
+    this.queues.push(q);
+  };
+
+  this.addQueue = function(name, priority, policy, quantum) {
+    var q = new Queue(name, priority, this.getPolicy(policy), quantum);
     this.queues.push(q);
   };
 
@@ -246,10 +147,12 @@ var Simulation = function() {
     this.currentTime += 1;
     var currentTime = this.currentTime;
     var isSimFinished = true;
+    var usedCPU = 0;
+
     for(var i in this.queues) {
       var queue = this.queues[i];
       var isQueueFinished = true;
-      console.log("Checking queue " + queue.name);
+      //console.log("Checking queue " + queue.name);
       if(queue.finished) continue;
 
       var allProcessesInQueue = this.processes.filter(function(p) {
@@ -264,15 +167,13 @@ var Simulation = function() {
       var processesInQueue = this.processes.filter(function(p) {
         return p.queue.name == queue.name && p.arrivalTime <= currentTime && p.status != 4;
       });
-      console.log("\tThere are " + processesInQueue.length + " processes in queue");
+      //console.log("\tThere are " + processesInQueue.length + " processes in queue");
       queue.policy(processesInQueue);
 
       if(processesInQueue.length == 0) continue;
 
-      var isCpuUsed = false;
-
       for(p in processesInQueue) {
-        console.log("\tChecking process " + processesInQueue[p].name);
+        //console.log("\tChecking process " + processesInQueue[p].name);
         if(processesInQueue[p].execs.length == 0) {
           processesInQueue[p].status = 4;
           continue;
@@ -290,11 +191,19 @@ var Simulation = function() {
           console.log("Process " + processesInQueue[p].name + " goes I/O");
           continue;
         }
-        if(!isCpuUsed) {
+        if(usedCPU < this.processors) {
           console.log("Process " + processesInQueue[p].name + " goes CPU");
           processesInQueue[p].execs.shift();
           processesInQueue[p].status = 1;
-          isCpuUsed = true;
+          usedCPU += 1;
+        }
+        else if(processesInQueue[p].status == 1 || processesInQueue[p].status == 3) {
+          console.log("Process " + processesInQueue[p].name + " goes Blocked");
+          processesInQueue[p].status = 3;
+        }
+        else {
+          console.log("Process " + processesInQueue[p].name + " goes Prepared");
+          processesInQueue[p].status = 0;
         }
       }
       if(isQueueFinished) queue.finished = true;

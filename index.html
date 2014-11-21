@@ -16,7 +16,7 @@
 <body>
 <div class="container">
   <h1>Javascript (Simple) Process Scheduling Simulator</h1>
-  <h3 class="text-muted">This is a sample webpage using the jsProScheSim simulator</h3>
+  <h3 class="text-muted">This is a sample application using the jsProScheSim simulator</h3>
   <p>First configure the system with the desired parameters.</p>
   <div role="tabpanel">
     <!-- Nav tabs -->
@@ -57,6 +57,10 @@
                 <option value="RoundRobin">RoundRobin</option>
                 <option value="SRT">SRT</option>
               </select>
+            </div>
+            <div id="queue_quantum_group" class="form-group hidden">
+              <label for="queue_quantum">Quantum</label>
+              <input type="number" id="queue_quantum" class="form-control" placeholder="Quantum">
             </div>
             <a id="addQueueButton" href="javascript:void(0)" class="btn btn-warning"><i class="mdi-action-done"></i> Add queue</a>
           </div>

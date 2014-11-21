@@ -18,6 +18,34 @@ function isReady() {
 }
 
 $(function() {
+  sim = new Simulation();
+  sim.setProcessors(1);
+  sim.addQueue('Queue 1', 1, 'FCFS');
+  sim.addQueue('Queue 2', 2, 'RoundRobin', 1);
+  sim.addQueue('Queue 3', 3, 'RoundRobin', 3);
+  sim.addQueue('Queue 4', 4, 'SRT');
+
+  sim.addProcess('A', 'Queue 1', 5, 1, [0,1,0,0,1,1,1,0]);
+  sim.addProcess('B', 'Queue 2', 4, 2, [0,0,1,1,1,0,1,1,1,0]);
+  sim.addProcess('C', 'Queue 3', 2, 3, [0,0,0,0,1,1,1,1,0,0,1,1,0]);
+  sim.addProcess('D', 'Queue 3', 3, 4, [0,1,1,1,1,0,0,0,1,1,1,1,0,0]);
+  sim.addProcess('E', 'Queue 4', 6, 5, [0,0,1,1,0,0,0,0,1,0,0]);
+  sim.addProcess('F', 'Queue 4', 1, 6, [0,0,0,0,1,0,0]);
+
+  $('#queue_policy').change(function() {
+    console.log("wa");
+    $('#queue_policy option:selected').each(function() {
+      console.log($(this).text());
+      if($(this).text() == "RoundRobin") {
+        console.log("remove!");
+        $('#queue_quantum_group').removeClass("hidden");
+      }
+      else {
+        $('#queue_quantum_group').addClass("hidden");
+      }
+    });
+  });
+
   $('#nextStepButton').click(function() {
     nextStep();
   });
@@ -27,7 +55,7 @@ $(function() {
     $('#result').html('');
     var phtml = '';
     for(var i in process_names) {
-      phtml += '<tr id="trp' + process_names[i] + '"><td>' + process_names[i] + '</td></tr>';
+      phtml += '<tr id="trp' + process_names[i] + '"><td><b>' + process_names[i] + '</b></td></tr>';
     }
     $('#result').append('<table id="resultTable" class="table table-striped table-hover table-condensed table-bordered"><thead><tr id="rtHead"><th>Process</th></tr></thead><tbody>' + phtml + '</tbody></table>');
     $('#progressBar').width('100%');
@@ -66,20 +94,27 @@ $(function() {
     var n = $('#queue_name').val();
     var priority = parseInt($('#queue_priority').val());
     var policy = $('#queue_policy').val();
+    var quantum = $('#queue_quantum').val();
     var repeated = false;
 
     for(var i in queue_names) {
       if(queue_names[i] == n) repeated = true;
     }
 
-    if(n.length <= 0 || isNaN(priority) || repeated) {
+    if(n.length <= 0 || isNaN(priority) || repeated || (policy == "RoundRobin" && isNaN(quantum))) {
       $('#modalAlertLabel').html('Queue not added');
       $('#modalAlertBody').html('<p>There was a problem adding the queue to the current simulation.</p><p>Ensure that you entered a valid name and priority.</p>');
       $('#modalAlertContent').addClass("alert-danger");
       $('#modalAlertContent').removeClass("alert-success");
     }
     else {
-      sim.addQueue(n, priority, policy);
+      if(policy == "RoundRobin") {
+        sim.addQueue(n, priority, policy, quantum);
+      }
+      else {
+        sim.addQueue(n, priority, policy);
+      }
+
       $('#modalAlertLabel').html('Queue added');
       $('#modalAlertBody').html('<p>The queue has been successfully added to the current simulation.</p>');
       $('#modalAlertContent').removeClass("alert-danger");
@@ -142,22 +177,6 @@ $(function() {
 });
 
 function nextStep() {
-  /*
-  sim = new Simulation();
-  sim.setProcessors(1);
-  sim.addQueue('Queue 1', 1, 'FCFS');
-  sim.addQueue('Queue 2', 2, 'RoundRobin');
-  sim.addQueue('Queue 3', 3, 'RoundRobin');
-  sim.addQueue('Queue 4', 4, 'SRT');
-
-  sim.addProcess('A', 'Queue 1', 5, 1, [0,1,0,0,1,1,1,0]);
-  sim.addProcess('B', 'Queue 2', 4, 2, [0,0,1,1,1,0,1,1,1,0]);
-  sim.addProcess('C', 'Queue 3', 2, 3, [0,0,0,0,1,1,1,1,0,0,1,1,0]);
-  sim.addProcess('D', 'Queue 3', 3, 4, [0,1,1,1,1,0,0,0,1,1,1,1,0,0]);
-  sim.addProcess('E', 'Queue 4', 6, 5, [0,0,1,1,0,0,0,0,1,0,0]);
-  sim.addProcess('F', 'Queue 4', 1, 6, [0,0,0,0,1,0,0]);
-  */
-
   var r = sim.getStatus();
   if(r.finished == false) {
     sim.nextStep();
