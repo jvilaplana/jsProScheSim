@@ -18,20 +18,6 @@ function isReady() {
 }
 
 $(function() {
-  sim = new Simulation();
-  sim.setProcessors(1);
-  sim.addQueue('Queue 1', 1, 'FCFS');
-  sim.addQueue('Queue 2', 2, 'RoundRobin', 1);
-  sim.addQueue('Queue 3', 3, 'RoundRobin', 3);
-  sim.addQueue('Queue 4', 4, 'SRT');
-
-  sim.addProcess('A', 'Queue 1', 5, 1, [0,1,0,0,1,1,1,0]);
-  sim.addProcess('B', 'Queue 2', 4, 2, [0,0,1,1,1,0,1,1,1,0]);
-  sim.addProcess('C', 'Queue 3', 2, 3, [0,0,0,0,1,1,1,1,0,0,1,1,0]);
-  sim.addProcess('D', 'Queue 3', 3, 4, [0,1,1,1,1,0,0,0,1,1,1,1,0,0]);
-  sim.addProcess('E', 'Queue 4', 6, 5, [0,0,1,1,0,0,0,0,1,0,0]);
-  sim.addProcess('F', 'Queue 4', 1, 6, [0,0,0,0,1,0,0]);
-
   $('#queue_policy').change(function() {
     console.log("wa");
     $('#queue_policy option:selected').each(function() {
@@ -196,4 +182,22 @@ function convertStatus(s) {
   else if(s == 2) return 'W';
   else if(s == 3) return 'B';
   else return 'F';
+}
+
+function testSim() {
+  //sim = new Simulation();
+  sim.setProcessors(1);
+  sim.addQueue('Queue 1', 1, 'FCFS');
+  sim.addQueue('Queue 2', 2, 'RoundRobin', 1);
+  sim.addQueue('Queue 3', 3, 'RoundRobin', 3);
+  sim.addQueue('Queue 4', 4, 'SRT');
+
+  sim.addProcess('A', 'Queue 1', 5, 1, [0,1,0,0,1,1,1,0]);
+  sim.addProcess('B', 'Queue 2', 4, 2, [0,0,1,1,1,0,1,1,1,0]);
+  sim.addProcess('C', 'Queue 3', 2, 3, [0,0,0,0,1,1,1,1,0,0,1,1,0]);
+  sim.addProcess('D', 'Queue 3', 3, 4, [0,1,1,1,1,0,0,0,1,1,1,1,0,0]);
+  sim.addProcess('E', 'Queue 4', 6, 5, [0,0,1,1,0,0,0,0,1,0,0]);
+  sim.addProcess('F', 'Queue 4', 1, 6, [0,0,0,0,1,0,0]);
+
+  $('#readySimButton').click();
 }
